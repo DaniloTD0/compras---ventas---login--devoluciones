@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras - Tienda Online</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .carrito {
+            margin-top: 20px;
+        }
+        .form-control-sm {
+            display: inline-block;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Compras - Tienda Online</h1>
+
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Filtros -->
+        <form class="form-inline mb-3" method="POST" action="{{ url_for('compras') }}">
+            <label class="my-1 mr-2">Filtrar por Proveedor:</label>
+            <select class="form-control form-control-sm my-1 mr-sm-2" name="proveedor_id">
+                <option value="">Todos los proveedores</option>
+                {% for proveedor in proveedores %}
+                <option value="{{ proveedor.ID_proveedor }}">{{ proveedor.Nombre_empresa }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm my-1">Filtrar</button>
+        </form>
+
+        <!-- Barra de Búsqueda -->
+        <form class="form-inline mb-3" method="POST" action="{{ url_for('compras') }}">
+            <input class="form-control form-control-sm mr-sm-2" type="text" placeholder="Buscar Producto" aria-label="Buscar" name="buscar">
+            <button class="btn btn-outline-success btn-sm my-1" type="submit">Buscar</button>
+        </form>
+
+        <!-- Lista de Productos -->
+        <div class="row">
+            {% for producto in productos %}
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ producto.nombre_producto }}</h5>
+                        <p class="card-text">Precio: ${{ producto.valor_producto }}</p>
+                        
+                        <form method="POST" action="{{ url_for('agregar_al_carrito', producto_id=producto.ID_producto) }}">
+                            <div class="form-group">
+                                <input type="number" class="form-control form-control-sm" name="cantidad" value="1" min="1">
+                                <input type="hidden" name="producto_id" value="{{ producto.ID_producto }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">Añadir al Carrito</button>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Carrito de Compras -->
+        <div class="carrito">
+            <h2>Carrito de Compras</h2>
+            {% if carrito %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in carrito %}
+                    <tr>
+                        <td>{{ item.nombre_producto }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td>${{ item.precio_total }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('eliminar_del_carrito', index=loop.index0) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-right">
+                <h4>Total: ${{ total_compra }}</h4>
+            </div>
+            <div class="text-center">
+                <form method="POST" action="{{ url_for('cancelar_compra') }}" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary">Cancelar Compra</button>
+                </form>
+                <form method="POST" action="{{ url_for('finalizar_compra') }}" style="display:inline;">
+                    <button type="submit" class="btn btn-success">Finalizar Compra</button>
+                </form>
+            </div>
+            {% else %}
+            <p>No hay productos en el carrito.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
